@@ -135,14 +135,18 @@
 import Vue from 'vue';
 import API from 'api';
 import Sorter from 'mixins/sorter';
-import Uploader from 'mixins/uploader';
+// import UploaderMixin from 'mixins/uploader';
 import Box from 'components/containers/box.vue';
 import ResourceAvailability from './availability.vue';
 import DatasetFilters from 'components/dataset/filters';
 
 export default {
     name: 'resources-list',
-    mixins: [Uploader, Sorter, DatasetFilters],
+    mixins: [
+        // UploaderMixin,
+        Sorter,
+        DatasetFilters
+    ],
     components: {Box, ResourceAvailability},
     props: {
         dataset: {
@@ -176,12 +180,28 @@ export default {
             this.files.splice(this.files.indexOf(file), 1);
         }
     },
+    init() {
+        // console.log('==='.repeat(10))
+        console.log('=== list.vue > init() > ... ')
+        console.log('=== list.vue > init() > this.$route.query :', this.$route.query)
+        console.log('=== list.vue > init() > this.dataset :', this.datset)
+    },
+    beforeCompile() {
+        // console.log('==='.repeat(10))
+        console.log('=== list.vue > BeforeCompile() > ... ')
+        console.log('=== list.vue > BeforeCompile() > this.$route.query :', this.$route.query)
+        console.log('=== list.vue > BeforeCompile() > this.dataset :', this.datset)
+    },
     ready() {
         /* In case of a new resource, we display the appropriated popin
            on load. */
-        if ("new_resource" in this.$route.query) {
-            this.on_new();
-        }
+        // console.log('==='.repeat(10))
+        console.log('=== list.vue > ready() > ... ')
+        console.log('=== list.vue > ready() > this.$route.query :', this.$route.query)
+        console.log('=== list.vue > ready() > this.dataset :', this.datset)
+        // if ("new_resource" in this.$route.query) {
+        //     this.on_new();
+        // }
     },
     methods: {
         on_new() {
@@ -224,6 +244,13 @@ export default {
             if (id) {
                 this.upload_endpoint = API.datasets.operations.upload_new_dataset_resource.urlify({dataset: id});
             }
+        }, 
+        dataset(dataset) {
+          console.log('=== list.vue > watch > dataset() > ... ')
+          console.log('=== list.vue > watch > dataset() > dataset : ', dataset)
+          if ( dataset && "new_resource" in this.$route.query) {
+              this.on_new();
+          }
         }
     }
 };

@@ -61,6 +61,7 @@ export default {
             dropping: false,
             upload_endpoint: null,
             HAS_FILE_API,
+            // $uploader: undefined,
         };
     },
     computed: {
@@ -68,7 +69,17 @@ export default {
             return true;
         },
     },
+    init() {
+        // console.log('...'.repeat(10))
+        console.log('... uploader.js > init() > ... ')
+    },
+    beforeCompile() {
+        // console.log('...'.repeat(10))
+        console.log('... uploader.js > BeforeCompile() > ... ')
+    },
     ready() {
+        // console.log('...'.repeat(10))
+        console.log('... uploader.js > ready() > ... ')
         this.$dnd = new qq.DragAndDrop({
             dropZoneElements: this.canDrop ? [this.$el] : [],
             classes: {
@@ -83,6 +94,7 @@ export default {
 
     watch: {
         canDrop(canDrop) {
+            console.log('... uploader.js > watch > canDrop() ...')
             if (canDrop) {
                 this.$dnd.setupExtraDropzone(this.$el);
             } else {
@@ -90,6 +102,8 @@ export default {
             }
         },
         upload_endpoint() {
+            // console.log('...'.repeat(20))
+            console.log('... uploader.js > watch > upload_endpoint() > this.upload_endpoint : ', this.upload_endpoint)
             this._build_uploader();
         }
     },
@@ -115,6 +129,10 @@ export default {
 
     methods: {
         _build_uploader() {
+            // console.log('...'.repeat(20))
+            console.log('... uploader.js > methods() > _build_uploader() ...')
+            console.log('... uploader.js > methods() > _build_uploader() > this.upload_endpoint : ', this.upload_endpoint)
+            console.log('... uploader.js > methods() > _build_uploader() > this.$options : ', this.$options)
             if (!this.upload_endpoint) return;
             this.$uploader = new qq.FineUploaderBasic({
                 debug: DEBUG,
@@ -156,13 +174,17 @@ export default {
                 },
                 validation: {allowedExtensions: this.$options.allowedExtensions || allowedExtensions.items},
                 messages,
-            });
+            })
+            console.log('... uploader.js > methods() > _build_uploader() > this.$uploader : ', this.$uploader)
         },
 
         /**
          * Manually start uploading
          */
         upload(params) {
+            // console.log('...'.repeat(20))
+            console.log('... uploader.js > methods() > upload() > params : ', params)
+            console.log('... uploader.js > methods() > upload() > this.$uploader : ', this.$uploader)
             if (params) {
                 this.$uploader.setParams(params);
             }
@@ -175,6 +197,8 @@ export default {
          * See: http://docs.fineuploader.com/branch/master/api/events.html#submit
          */
         on_submit(id) {
+            // console.log('...'.repeat(20))
+            console.log('... uploader.js > methods() > on_submit() > id : ', id)
             if (HAS_FILE_API) {
                 const file = this.$uploader.getFile(id);
                 file.id = id;
@@ -190,6 +214,8 @@ export default {
          * See: http://docs.fineuploader.com/branch/master/api/events.html#upload
          */
         on_upload(id) {
+            // console.log('...'.repeat(20))
+            console.log('... uploader.js > methods() > on_upload() > id : ', id)
             this.$emit('uploader:upload', id);
         },
 
@@ -199,6 +225,11 @@ export default {
          * See: http://docs.fineuploader.com/branch/master/api/events.html#progress
          */
         on_progress(id, name, uploaded, total) {
+            // console.log('...'.repeat(20))
+            console.log('... uploader.js > methods() > on_progress() > id : ', id)
+            // console.log('... uploader.js > methods() > on_progress() > name : ', name)
+            // console.log('... uploader.js > methods() > on_progress() > uploaded : ', uploaded)
+            // console.log('... uploader.js > methods() > on_progress() > total : ', total)
             const file = this.$uploader.getFile(id);
             file.progress = Math.round(uploaded * 100 / total);
             this.$emit('uploader:progress', id, uploaded, total);
@@ -210,7 +241,14 @@ export default {
          * See: http://docs.fineuploader.com/branch/master/api/events.html#complete
          */
         on_complete(id, name, response) {
+            console.log('...'.repeat(20))
+            console.log('... uploader.js > methods() > on_complete() > id : ', id)
+            // console.log('... uploader.js > methods() > on_complete() > name : ', name)
+            // console.log('... uploader.js > methods() > on_complete() > response : ', response)
+            // console.log('... uploader.js > methods() > on_complete() > this.$uploader A : ', this.$uploader)
             if (!response.success) return;
+            // if (!response.success && this.$uploader) return;
+            // console.log('... uploader.js > methods() > on_complete() > this.$uploader B : ', this.$uploader)
             const file = this.$uploader.getFile(id);
             this.files.$remove(file);
             this.$emit('uploader:complete', id, response, file);
@@ -222,7 +260,14 @@ export default {
          * See: http://docs.fineuploader.com/branch/master/features/drag-and-drop.html#processingDroppedFilesComplete
          */
         on_dropped_files_complete(files) {
-            if (this.canDrop) {
+            console.log('... uploader.js > methods() > on_dropped_files_complete() > files : ', files)
+            console.log('... uploader.js > methods() > on_dropped_files_complete() > this.upload_endpoint : ', this.upload_endpoint)
+            if (!this.$uploader) {
+                console.log('\n... !!! ERROR !!! '.repeat(5))
+                console.log('... !!! uploader.js > methods() > on_dropped_files_complete() > !this.$uploader ... ')
+            }
+            if (this.canDrop && this.$uploader) {
+                console.log('\n... !!! ALL OK !!! '.repeat(5))
                 this.$uploader.addFiles(files); // this submits the dropped files to Fine Uploader
             }
         },
@@ -249,7 +294,7 @@ export default {
             if (xhr && config.sentry.dsn) {
                 const sentryId = xhr.getResponseHeader('X-Sentry-ID');
                 if (sentryId) {
-                    reason = [reason, this._('The error identifier is {id}', {id: sentryId})].join('\n');
+                    reason = [reason, this._('The error identifier is {id}', {id: sentryId})].join('');
                 }
             }
             this.$dispatch('notify', {
